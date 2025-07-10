@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TG EAPCET 2024 College Predictor</title>
+  <style>
+  body {
+    font-family: Arial;
+    max-width: 700px;
+    margin: auto;
+    padding: 20px;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+  }
+  select, input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+  }
+  button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #0c7;
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  #results {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  #results table {
+    width: auto;
+    border-collapse: collapse;
+    margin: 0 auto;
+  }
+
+  #results th, #results td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  #results th {
+    background-color: #eee;
+  }
+
+  #results p {
+    background-color: #f8d7da;
+    padding: 10px;
+    margin: 10px 0;
+    color: #721c24;
+    text-align: center;
+  }
+</style>
+
+</head>
+<body>
+
+  <h1>TG EAPCET 2025 – College Predictor</h1>
+
+
+  <label>Enter Your Rank:</label>
+  <input type="number" id="rank" placeholder="e.g., 30000" required />
+
+  <label>Select Category:</label>
+  <select id="category">
+    <option value="OC">OC</option>
+    <option value="BCA">BC_A</option>
+    <option value="BCB">BC_B</option>
+    <option value="BCC">BC_C</option>
+    <option value="BCD">BC_D</option>
+    <option value="BCE">BC_E</option>
+    <option value="SC">SC</option>
+    <option value="ST">ST</option>
+    <option value="OC_EWS">OC_EWS</option>
+  </select>
+
+  <label>Select Gender:</label>
+  <select id="gender">
+    <option value="BOYS">BOYS</option>
+    <option value="GIRLS">GIRLS</option>
+  </select>
+
+  <label>Branch (optional):</label>
+  <select id="branch">
+    <option value="">All</option>
+    <option value="CSE">CSE</option>
+    <option value="ECE">ECE</option>
+    <option value="EEE">EEE</option>
+    <option value="CIV">CIV</option>
+    <option value="MEC">MEC</option>
+    <option value="CSM">CSM</option>
+    <option value="CSD">CSD</option>
+    <option value="CSO">CSO</option>
+    <option value="INF">INF</option>
+  </select>
+
+  <label>District (optional):</label>
+  <select id="district">
+    <option value="">All</option>
+    <option value="HYD">HYD</option>
+    <option value="MDL">MDL</option>
+    <option value="RR">RR</option>
+  </select>
+
+  <label>Year of Establishment (optional):</label>
+  <select id="inst_reg">
+    <option value="">All</option>
+    <option value="2005">2005</option>
+    <option value="2007">2007</option>
+    <option value="2010">2010</option>
+  </select>
+
+  <button onclick="predict()">Predict Colleges</button>
+
+  <h2>Results</h2>
+  <div id="results"></div>
+  <p>we are still working on it!</p>
+
+  <script>
+    async function predict() {
+      const rank = parseInt(document.getElementById('rank').value);
+      const category = document.getElementById('category').value;
+      const gender = document.getElementById('gender').value;
+      const branch = document.getElementById('branch').value;
+      const district = document.getElementById('district').value;
+      const inst_reg = document.getElementById('inst_reg').value;
+
+      if (!rank || isNaN(rank)) {
+        alert("Please enter a valid rank.");
+        return;
+      }
+
+      const response = await fetch('http://localhost:3000/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rank, category, gender, branch, district, inst_reg })
+      });
+
+      const data = await response.json();
+      const colleges = data.result;
+      const key = data.key;
+
+      const resultDiv = document.getElementById('results');
+      resultDiv.innerHTML = '';
+
+      if (colleges.length === 0) {
+        resultDiv.innerHTML = '<p>No colleges found for the given filters.</p>';
+        return;
+      }
+
+      let table = `
+        <table>
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Inst Code</th>
+              <th>College Name</th>
+              <th>Branch</th>
+              <th>Branch Name</th>
+              <th>District</th>
+              <th>Place</th>
+              <th>Type</th>
+              <th>Coed</th>
+              <th>Estb</th>
+              <th>Affiliated</th>
+              <th>Closing Rank (${key})</th>
+              <th>Fee</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      colleges.forEach((college, index) => {
+        table += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${college.INSTCODE || '-'}</td>
+            <td>${college.COLLEGE_NAME || '-'}</td>
+            <td>${college.BRANCH || '-'}</td>
+            <td>${college.BRANCH_NAME || '-'}</td>
+            <td>${college.DIST || '-'}</td>
+            <td>${college.PLACE || '-'}</td>
+            <td>${college.TYPE || '-'}</td>
+            <td>${college.COED || '-'}</td>
+            <td>${college.INST_REG || '-'}</td>
+            <td>${college.AFFL || '-'}</td>
+            <td>${college[key] || '-'}</td>
+            <td>${college.COLLFEE || '-'}</td>
+          </tr>
+        `;
+      });
+
+      table += '</tbody></table>';
+      resultDiv.innerHTML = table;
+    }
+  </script>
+
+</body>
+</html>
